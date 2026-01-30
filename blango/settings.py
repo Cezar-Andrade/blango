@@ -19,6 +19,12 @@ class Dev(Configuration):
     # Build paths inside the project like this: BASE_DIR / 'subdir'.
     BASE_DIR = Path(__file__).resolve().parent.parent
 
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+    ACCOUNT_ACTIVATION_DAYS = 7
+    
+    #REGISTRATION_OPEN = False
+
     LOGGING = {
         "version": 1,
         "disable_existing_loggers": False,
