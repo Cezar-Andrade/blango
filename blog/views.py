@@ -19,7 +19,11 @@ class PostList(ListView):
     model = Post
     
     def get_queryset(self):
-        posts = self.model.objects.filter(published_at__lte=timezone.now())
+        posts = (
+            self.model.objects.filter(published_at__lte=timezone.now())
+            .select_related("author")
+            .defer("created_at", "modified_at")
+        )
         logger.debug("Got %d posts", len(posts))
         return posts
 
@@ -54,3 +58,7 @@ class PostDetail(DetailView):
             logger.info("A POST request was sent without the user logged in!")
             comment_form = None
         return render(request, self.template_name, {"post": post, "comment_form": comment_form})
+
+def get_ip(request):
+    from django.http import HttpResponse
+    return HttpResponse(request.META['REMOTE_ADDR'])

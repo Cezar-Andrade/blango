@@ -15,11 +15,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
 
 import blog.views
+import debug_toolbar
 
 urlpatterns = [
   path("", blog.views.PostList.as_view()),
   path("post/<str:slug>/", blog.views.PostDetail.as_view(), name="blog_post_detail"),
   path('admin/', admin.site.urls),
+  path("ip/", blog.views.get_ip),
 ]
+
+if settings.DEBUG:
+  urlpatterns += [
+    path("__debug__/", include(debug_toolbar.urls)),
+  ]
