@@ -4,6 +4,9 @@ from django.utils.html import format_html
 
 from blog.models import Post
 
+import logging
+
+logger = logging.getLogger(__name__)
 register = Library()
 
 #@register.inclusion_tag("blog/title_post_list.html", takes_context=True)
@@ -11,6 +14,7 @@ register = Library()
 @register.inclusion_tag("blog/title_post_list.html")
 def recent_posts(post):
     posts = Post.objects.exclude(pk=post.pk)[:5]
+    logger.debug("Loaded %d recent posts for post %d", len(posts), post.pk)
     return {"title": "Recent Posts", "post_list": posts}
 
 #@register.simple_tag(takes_context=True)
