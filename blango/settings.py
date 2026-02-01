@@ -25,6 +25,14 @@ class Dev(Configuration):
     
     #REGISTRATION_OPEN = False
 
+    REST_FRAMEWORK = {
+        "DEFAULT_AUTHENTICATION_CLASSES": [
+            "rest_framework.authentication.BasicAuthentication",
+            "rest_framework.authentication.SessionAuthentication",
+            "rest_framework.authentication.TokenAuthentication",
+        ]
+    }
+
     LOGGING = {
         "version": 1,
         "disable_existing_loggers": False,
@@ -104,6 +112,7 @@ class Dev(Configuration):
         "allauth.socialaccount",
         "allauth.socialaccount.providers.google",
         "rest_framework",
+        "rest_framework.authtoken",
     ]
 
     SITE_ID = 1
