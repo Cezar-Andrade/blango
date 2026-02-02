@@ -13,6 +13,9 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+def post_table(request):
+    return render(request, "blog/post_table.html")
+
 #@method_decorator(cache_page(300), name="get")
 #@method_decorator(vary_on_cookie, name="get")
 class PostList(ListView):
