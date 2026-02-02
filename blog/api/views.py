@@ -1,12 +1,19 @@
 from rest_framework import generics, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
+
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_headers, vary_on_cookie
 
 from blango_auth.models import User
 from blog.api.serializers import PostSerializer, UserSerializer, PostDetailSerializer, TagSerializer
 from blog.models import Post, Tag
 from blog.api.permissions import AuthorModifyOrReadOnly, IsAdminUserForObject
 
+@method_decorator(cache_page(300), name="list")
+@method_decorator(cache_page(300), name="retrieve")
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -17,6 +24,7 @@ class TagViewSet(viewsets.ModelViewSet):
         post_serializer = PostSerializer(tag.posts, many=True, context={"request": request})
         return Response(post_serializer.data)
 
+@method_decorator(cache_page(120), name="list") # This is better
 class PostViewSet(viewsets.ModelViewSet):
     permission_classes = [AuthorModifyOrReadOnly | IsAdminUserForObject]
     queryset = Post.objects.all()
@@ -25,6 +33,16 @@ class PostViewSet(viewsets.ModelViewSet):
         if self.action in ("list", "create"):
             return PostSerializer
         return PostDetailSerializer
+    
+    @method_decorator(cache_page(300))
+    @method_decorator(vary_on_headers("Authorization", "Cookie"))
+    @action(methods=["get"], detail=False, name="Posts by the logged in user")
+    def mine(self, request):
+        if request.user.is_anonymous:
+            raise PermissionDenied("You must be logged in to see which Posts are yours")
+        posts = self.get_queryset().filter(author=request.user)
+        serializer = PostSerializer(posts, many=True, context={"request": request})
+        return Response(serializer.data)
 """
 class PostList(generics.ListCreateAPIView):
     queryset = Post.objects.all()
@@ -36,6 +54,7 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostDetailSerializer
 """
+@method_decorator(cache_page(300), name="get") #Way better
 class UserDetail(generics.RetrieveAPIView):
     lookup_field = "email"
     queryset = User.objects.all()
