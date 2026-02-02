@@ -6,6 +6,11 @@ from rest_framework.exceptions import PermissionDenied
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_headers, vary_on_cookie
+from django.db.models import Q
+from django.utils import timezone
+from django.http import Http404
+
+from datetime import timedelta
 
 from blango_auth.models import User
 from blog.api.serializers import PostSerializer, UserSerializer, PostDetailSerializer, TagSerializer
@@ -25,9 +30,37 @@ class TagViewSet(viewsets.ModelViewSet):
         return Response(post_serializer.data)
 
 @method_decorator(cache_page(120), name="list") # This is better
+@method_decorator(vary_on_headers("Authorization", "Cookie"), name="list")
 class PostViewSet(viewsets.ModelViewSet):
     permission_classes = [AuthorModifyOrReadOnly | IsAdminUserForObject]
     queryset = Post.objects.all()
+
+    def get_queryset(self):
+        if self.request.user.is_anonymous:
+            queryset = self.queryset.filter(published_at__lte=timezone.now())
+        elif not self.request.user.is_staff:
+            queryset = self.queryset
+        else:
+            queryset = self.queryset.filter(
+                Q(published_at__lte=timezone.now()) | Q(author=self.request.user)
+            )
+        
+        time_period_name = self.kwargs.get("period_name")
+
+        if not time_period_name:
+            return queryset
+
+        if time_period_name == "new":
+            return queryset.filter(published_at__gte=timezone.now() - timedelta(hours=1))
+        elif time_period_name == "today":
+            return queryset.filter(published_at__date=timezone.now().date())
+        elif time_period_name == "week":
+            return queryset.filter(published_at__gte=timezone.now() - timedelta(days=7))
+        else:
+            raise Http404(
+                f"Time period {time_period_name} is not valid, should be "
+                f"'new', 'today' or 'week'"
+            )
 
     def get_serializer_class(self):
         if self.action in ("list", "create"):
