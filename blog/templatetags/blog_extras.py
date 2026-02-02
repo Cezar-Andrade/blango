@@ -1,7 +1,7 @@
-from django.contrib.auth.models import User
 from django.template import Library
 from django.utils.html import format_html
 
+from blango_auth.models import User
 from blog.models import Post
 
 import logging
@@ -38,7 +38,7 @@ def author_details(user, current_user):
 
     return name
 
-@register.simple_tag()
+@register.simple_tag
 def row(extra_classes=""):
     return format_html('<div class="row {}">', extra_classes)
 

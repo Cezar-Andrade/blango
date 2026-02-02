@@ -129,6 +129,10 @@ class Dev(Configuration):
   
     # Application definition
 
+    MEDIA_ROOT = BASE_DIR / "media"
+
+    MEDIA_URL = "/media/"
+
     INSTALLED_APPS = [
         'django.contrib.admin',
         'django.contrib.auth',
@@ -150,6 +154,7 @@ class Dev(Configuration):
         "rest_framework.authtoken",
         "drf_yasg",
         "django_filters",
+        "versatileimagefield",
     ]
 
     SITE_ID = 1
