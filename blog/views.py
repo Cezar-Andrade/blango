@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views.generic import ListView, DetailView
+from django.urls import reverse
 #from django.utils.decorators import method_decorator #Specific for class views
 #from django.views.decorators.cache import cache_page
 #from django.views.decorators.vary import vary_on_cookie
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 def post_table(request):
-    return render(request, "blog/post_table.html")
+    return render(request, "blog/post_table.html", {"post_list_url": reverse("post-list")})
 
 #@method_decorator(cache_page(300), name="get")
 #@method_decorator(vary_on_cookie, name="get")
